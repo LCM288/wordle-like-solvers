@@ -1,9 +1,17 @@
-import React from "react";
-import { Menu } from "react-bulma-components";
+import React, { useState } from "react";
+import { Menu, Button, Columns, Section } from "react-bulma-components";
+import styled from "styled-components";
 
-const AppMenu = (): React.ReactElement => {
+interface Props {
+  className?: string;
+}
+
+const StyledMenu = styled(Menu)``;
+
+const AppMenu = ({ className }: Props): React.ReactElement => {
+  const [expended, setExpended] = useState(true);
   return (
-    <Menu>
+    <StyledMenu className={className}>
       <Menu.List title="Menu List 1" textColor="dark">
         <Menu.List.Item>Menu Item A</Menu.List.Item>
         <Menu.List.Item>Menu Item B</Menu.List.Item>
@@ -18,7 +26,12 @@ const AppMenu = (): React.ReactElement => {
           </Menu.List>
         </Menu.List.Item>
       </Menu.List>
-    </Menu>
+      <Menu.List.Item>
+        <Button onClick={() => setExpended(!expended)}>
+          {expended ? "Collapse" : "Expand"}
+        </Button>
+      </Menu.List.Item>
+    </StyledMenu>
   );
 };
 
@@ -26,10 +39,16 @@ export const WithAppMenu = (
   Element: () => React.ReactElement
 ): React.ReactElement => {
   return (
-    <>
-      <AppMenu />
-      <Element />
-    </>
+    <Section>
+      <Columns multiline={false} breakpoint="mobile">
+        <Columns.Column narrow>
+          <AppMenu />
+        </Columns.Column>
+        <Columns.Column>
+          <Element />
+        </Columns.Column>
+      </Columns>
+    </Section>
   );
 };
 
