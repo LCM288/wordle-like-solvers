@@ -32,7 +32,7 @@ const Wordle = (): React.ReactElement => {
   const alphabetResult = useMemo(() => game.alphabetResult, [game]);
   const [currentGuess, setCurrentGuess] = useState("");
   const combinedGuesses = useMemo(
-    () => guesses.concat(game.canGuess ? [[currentGuess, []]] : []),
+    () => guesses.concat(game.canGuess ? [{ guess: currentGuess }] : []),
     [guesses, game.canGuess, currentGuess]
   );
   const makeGuess = useCallback(() => {
@@ -68,7 +68,7 @@ const Wordle = (): React.ReactElement => {
         {range(WordleGame.maxGuesses).map((i) => (
           <GuessRow
             key={i}
-            guessWithResult={combinedGuesses[i] ?? ["", []]}
+            guessWithResult={combinedGuesses[i] ?? { guess: "" }}
             length={WordleGame.answerLength}
           />
         ))}

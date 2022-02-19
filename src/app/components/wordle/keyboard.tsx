@@ -32,7 +32,7 @@ const Keyboard = ({
     () => ["QWERTYUIOP", "ASDFGHJKL", "⌫ZXCVBNM⏎"],
     []
   );
-  const guessResult = useMemo(
+  const guessResultList = useMemo(
     () =>
       keyboardLayout.map((row) =>
         _(row)
@@ -64,7 +64,7 @@ const Keyboard = ({
       {keyboardLayout.map((row, i) => (
         <RowDiv key={i} row={i}>
           <GuessRow
-            guessWithResult={[row, guessResult[i]]}
+            guessWithResult={{ guess: row, guessResult: guessResultList[i] }}
             length={row.length}
             actions={actions[i]}
           />

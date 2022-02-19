@@ -28,8 +28,10 @@ const GuessRow = ({
       {range(length).map((i) => (
         <GuessCell
           key={i}
-          item={guessWithResult[0][i] ?? ""}
-          result={guessWithResult[1][i] ?? SingleGuessResult.unknown}
+          item={guessWithResult?.guess[i] ?? ""}
+          result={
+            guessWithResult?.guessResult?.[i] ?? SingleGuessResult.unknown
+          }
           action={actions[i]}
         />
       ))}
