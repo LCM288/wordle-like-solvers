@@ -29,6 +29,10 @@ class WordleGame {
     return allowList;
   }
 
+  static guessIsInAllowList(guess: string): boolean {
+    return this.allowList[sortedIndex(this.allowList, guess)] === guess;
+  }
+
   static guessResult(guess: string, answer: string): GuessResult {
     if (guess.toLowerCase() !== guess) {
       return this.guessResult(guess.toLowerCase(), answer);
@@ -73,6 +77,28 @@ class WordleGame {
     return guessResult;
   }
 
+  static updateAlphabetResult(
+    { guess, guessResult }: GuessWithResult,
+    alphabetResult: AlphabetResult
+  ): void {
+    for (let i = 0; i < guess.length; i++) {
+      switch (alphabetResult[guess[i]]) {
+        case SingleGuessResult.perfectMatch:
+          break;
+        case SingleGuessResult.partialMatch:
+          if (guessResult?.[i] === SingleGuessResult.perfectMatch) {
+            alphabetResult[guess[i]] = guessResult[i];
+          }
+          break;
+        default:
+          if (guessResult) {
+            alphabetResult[guess[i]] = guessResult[i];
+          }
+          break;
+      }
+    }
+  }
+
   private _answer: string;
 
   private _guesses: Required<GuessWithResult>[];
@@ -102,25 +128,6 @@ class WordleGame {
     return Boolean(lastGuess?.guess === this._answer);
   }
 
-  private updateAlphabetResult({ guess, guessResult }: GuessWithResult) {
-    for (let i = 0; i < guess.length; i++) {
-      switch (this._alphabetResult[guess[i]]) {
-        case SingleGuessResult.perfectMatch:
-          break;
-        case SingleGuessResult.partialMatch:
-          if (guessResult?.[i] === SingleGuessResult.perfectMatch) {
-            this._alphabetResult[guess[i]] = guessResult[i];
-          }
-          break;
-        default:
-          if (guessResult) {
-            this._alphabetResult[guess[i]] = guessResult[i];
-          }
-          break;
-      }
-    }
-  }
-
   /**
    * Make a guess.
    * If the guess is valid, return the guess result.
@@ -131,16 +138,16 @@ class WordleGame {
       return this.makeGuess(guess.toLowerCase());
     }
 
-    if (
-      !this.canGuess ||
-      WordleGame.allowList[sortedIndex(WordleGame.allowList, guess)] !== guess
-    ) {
+    if (!this.canGuess || !WordleGame.guessIsInAllowList(guess)) {
       return null;
     }
 
     const guessResult = WordleGame.guessResult(guess, this._answer);
 
-    this.updateAlphabetResult({ guess, guessResult });
+    WordleGame.updateAlphabetResult(
+      { guess, guessResult },
+      this._alphabetResult
+    );
 
     this.guesses.push({ guess, guessResult });
     return guessResult;
