@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { SingleGuessResult } from "@/app/games/guessResult";
 import Colors from "@/app/utils/colors";
 import Color from "color";
+import { fullHeight, mediumHeight } from "@/app/utils/wordleBreakPoints";
 
 export type CellAction = () => void;
 
@@ -28,9 +29,6 @@ interface Props {
 type StyledDivProps = Pick<Props, "item" | "result">;
 
 const StyledDiv = styled.div<StyledDivProps>`
-  margin-right: 0.5rem;
-  width: 4rem;
-  height: 4rem;
   border: 2px solid
     ${(props) =>
       props.result === SingleGuessResult.unknown
@@ -38,11 +36,9 @@ const StyledDiv = styled.div<StyledDivProps>`
           ? Colors.black.string()
           : Colors.greyLight.string()
         : Colors.transparent.string()};
-  border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
   color: ${(props) =>
     props.result === SingleGuessResult.unknown
       ? Colors.dark.string()
@@ -57,6 +53,28 @@ const StyledDiv = styled.div<StyledDivProps>`
           ? Colors.greyLight.string()
           : Colors.greyDark.string()
         : Colors.transparent.string()};
+  }
+  user-select: none;
+  @media (min-height: ${fullHeight}) {
+    margin-right: 0.5rem;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 0.5rem;
+    font-size: 2rem;
+  }
+  @media (min-height: ${mediumHeight}) and (max-height: ${fullHeight}) {
+    margin-right: 0.375rem;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.375rem;
+    font-size: 1.5rem;
+  }
+  @media (max-height: ${mediumHeight}) {
+    margin-right: 0.25rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.25rem;
+    font-size: 1rem;
   }
 `;
 

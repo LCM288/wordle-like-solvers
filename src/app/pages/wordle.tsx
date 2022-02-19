@@ -5,9 +5,24 @@ import Keyboard from "@/app/components/wordle/keyboard";
 import useForceUpdate from "@/app/utils/useForceUpdate";
 import { range } from "lodash";
 import styled from "styled-components";
+import { fullHeight, mediumHeight } from "@/app/utils/wordleBreakPoints";
 
 const StyledDiv = styled.div`
   outline: none;
+`;
+
+const GuessDiv = styled.div`
+  width: max-content;
+  margin: auto;
+  @media (min-height: ${fullHeight}) {
+    margin-bottom: 2rem;
+  }
+  @media (min-height: ${mediumHeight}) and (max-height: ${fullHeight}) {
+    margin-bottom: 1.5rem;
+  }
+  @media (max-height: ${mediumHeight}) {
+    margin-bottom: 1rem;
+  }
 `;
 
 const Wordle = (): React.ReactElement => {
@@ -17,11 +32,11 @@ const Wordle = (): React.ReactElement => {
   const alphabetResult = useMemo(() => game.alphabetResult, [game]);
   const [currentGuess, setCurrentGuess] = useState("");
   const combinedGuesses = useMemo(
-    () => guesses.concat([[currentGuess, []]]),
-    [guesses, currentGuess]
+    () => guesses.concat(game.canGuess ? [[currentGuess, []]] : []),
+    [guesses, game.canGuess, currentGuess]
   );
   const makeGuess = useCallback(() => {
-    const result = game.makeGuess(currentGuess.toLowerCase());
+    const result = game.makeGuess(currentGuess);
     if (result) {
       setCurrentGuess("");
       forceUpdate();
@@ -29,7 +44,7 @@ const Wordle = (): React.ReactElement => {
       console.log("Invalid guess");
     }
   }, [currentGuess, forceUpdate, game]);
-  const handleKeyPress = useCallback(
+  const handleKeyDown = useCallback(
     (key: string) => {
       if (key.length === 1 && key.match(/[a-zA-Z]/)) {
         if (currentGuess.length < WordleGame.answerLength) {
@@ -48,18 +63,20 @@ const Wordle = (): React.ReactElement => {
     [currentGuess, makeGuess]
   );
   return (
-    <StyledDiv onKeyDown={(event) => handleKeyPress(event.key)} tabIndex={0}>
-      {range(WordleGame.maxGuesses).map((i) => (
-        <GuessRow
-          key={i}
-          guessWithResult={combinedGuesses[i] ?? ["", []]}
-          length={WordleGame.answerLength}
-        />
-      ))}
+    <StyledDiv onKeyDown={(event) => handleKeyDown(event.key)} tabIndex={0}>
+      <GuessDiv>
+        {range(WordleGame.maxGuesses).map((i) => (
+          <GuessRow
+            key={i}
+            guessWithResult={combinedGuesses[i] ?? ["", []]}
+            length={WordleGame.answerLength}
+          />
+        ))}
+      </GuessDiv>
       <Keyboard
         key={forceUpdateCount}
         alphabetResult={alphabetResult}
-        handleKeyPress={handleKeyPress}
+        handleKeyDown={handleKeyDown}
       />
       <button
         onClick={() => {

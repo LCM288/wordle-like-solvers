@@ -18,6 +18,14 @@ class WordleGame {
     return 6;
   }
 
+  static get answerList(): string[] {
+    return answerList;
+  }
+
+  static get allowList(): string[] {
+    return allowList;
+  }
+
   private _answer: string;
 
   private _guesses: GuessWithResult[];
@@ -25,7 +33,7 @@ class WordleGame {
   private _alphabetResult: AlphabetResult;
 
   constructor() {
-    this._answer = sample(answerList) ?? "aahed";
+    this._answer = sample(WordleGame.answerList) ?? "cigar";
     this._guesses = [];
     this._alphabetResult = {};
   }
@@ -74,7 +82,10 @@ class WordleGame {
       return this.makeGuess(guess.toLowerCase());
     }
 
-    if (!this.canGuess || allowList[sortedIndex(allowList, guess)] !== guess) {
+    if (
+      !this.canGuess ||
+      WordleGame.allowList[sortedIndex(WordleGame.allowList, guess)] !== guess
+    ) {
       return null;
     }
 

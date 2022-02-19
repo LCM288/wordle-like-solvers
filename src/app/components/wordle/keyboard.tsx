@@ -4,26 +4,32 @@ import GuessRow from "@/app/components/wordle/guessRow";
 import { AlphabetResult } from "@/app/games/wordle/wordleGame";
 import _ from "lodash";
 
-interface StyledDivProps {
+const KeyboardDiv = styled.div`
+  width: max-content;
+  margin: auto;
+`;
+
+interface RowDivProps {
   row: number;
 }
 
-const StyledDiv = styled.div<StyledDivProps>`
-  padding-left: ${(props) => props.row * 2.5}rem;
+const RowDiv = styled.div<RowDivProps>`
+  margin: auto;
+  width: max-content;
 `;
 
 interface Props {
   /** The best result of the 26 alphabets */
   alphabetResult: AlphabetResult;
-  handleKeyPress: (key: string) => void;
+  handleKeyDown: (key: string) => void;
 }
 
 const Keyboard = ({
   alphabetResult,
-  handleKeyPress,
+  handleKeyDown,
 }: Props): React.ReactElement => {
   const keyboardLayout = useMemo(
-    () => ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"],
+    () => ["QWERTYUIOP", "ASDFGHJKL", "⌫ZXCVBNM⏎"],
     []
   );
   const guessResult = useMemo(
@@ -39,23 +45,32 @@ const Keyboard = ({
     () =>
       keyboardLayout.map((row) =>
         _(row)
-          .map((c) => () => handleKeyPress(c))
+          .map((c) => {
+            switch (c) {
+              case "⌫":
+                return () => handleKeyDown("Backspace");
+              case "⏎":
+                return () => handleKeyDown("Enter");
+              default:
+                return () => handleKeyDown(c);
+            }
+          })
           .value()
       ),
-    [keyboardLayout, handleKeyPress]
+    [keyboardLayout, handleKeyDown]
   );
   return (
-    <>
+    <KeyboardDiv>
       {keyboardLayout.map((row, i) => (
-        <StyledDiv key={i} row={i}>
+        <RowDiv key={i} row={i}>
           <GuessRow
             guessWithResult={[row, guessResult[i]]}
             length={row.length}
             actions={actions[i]}
           />
-        </StyledDiv>
+        </RowDiv>
       ))}
-    </>
+    </KeyboardDiv>
   );
 };
 
