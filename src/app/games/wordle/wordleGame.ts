@@ -75,7 +75,7 @@ class WordleGame {
 
   private _answer: string;
 
-  private _guesses: GuessWithResult[];
+  private _guesses: Required<GuessWithResult>[];
 
   private _alphabetResult: AlphabetResult;
 

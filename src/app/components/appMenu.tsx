@@ -1,42 +1,45 @@
-import React, { useState } from "react";
-import { Menu, Button, Columns, Section } from "react-bulma-components";
+import React from "react";
+import { Menu, Columns, Section } from "react-bulma-components";
 import styled from "styled-components";
+import { useLinkClickHandler, useLocation } from "react-router-dom";
 
 interface Props {
   className?: string;
 }
 
-const StyledMenu = styled(Menu)``;
+const StyledMenu = styled(Menu)`
+  min-width: 20vh;
+`;
+
+const wordlePath = "/wordle";
+const wordleHintPath = "/wordle/hint";
 
 const AppMenu = ({ className }: Props): React.ReactElement => {
-  const [expended, setExpended] = useState(true);
+  const location = useLocation();
+  const toWordle = useLinkClickHandler(wordlePath);
+  const toWordleHint = useLinkClickHandler(wordleHintPath);
   return (
     <StyledMenu className={className}>
-      <Menu.List title="Menu List 1" textColor="dark">
-        <Menu.List.Item>Menu Item A</Menu.List.Item>
-        <Menu.List.Item>Menu Item B</Menu.List.Item>
-      </Menu.List>
-
-      <Menu.List title="Menu List 2">
-        <Menu.List.Item>Menu Item C</Menu.List.Item>
-        <Menu.List.Item active>
-          <Menu.List title="Menu Item D List Active">
-            <Menu.List.Item>Menu Item E</Menu.List.Item>
-            <Menu.List.Item active>Menu Item F Active</Menu.List.Item>
-          </Menu.List>
+      <Menu.List title="Wordle" textColor="dark">
+        <Menu.List.Item
+          onClick={toWordle}
+          active={location.pathname === wordlePath}
+        >
+          Game
+        </Menu.List.Item>
+        <Menu.List.Item
+          onClick={toWordleHint}
+          active={location.pathname === wordleHintPath}
+        >
+          Solver
         </Menu.List.Item>
       </Menu.List>
-      <Menu.List.Item>
-        <Button onClick={() => setExpended(!expended)}>
-          {expended ? "Collapse" : "Expand"}
-        </Button>
-      </Menu.List.Item>
     </StyledMenu>
   );
 };
 
 export const WithAppMenu = (
-  Element: () => React.ReactElement
+  Element: React.ReactElement
 ): React.ReactElement => {
   return (
     <Section>
@@ -44,9 +47,7 @@ export const WithAppMenu = (
         <Columns.Column narrow>
           <AppMenu />
         </Columns.Column>
-        <Columns.Column>
-          <Element />
-        </Columns.Column>
+        <Columns.Column>{Element}</Columns.Column>
       </Columns>
     </Section>
   );
