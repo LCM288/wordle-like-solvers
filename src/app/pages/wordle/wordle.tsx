@@ -1,19 +1,29 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import WordleGame from "@/app/games/wordle/wordleGame";
 import GuessRow from "@/app/components/wordle/guessRow";
 import Keyboard from "@/app/components/wordle/keyboard";
-import useForceUpdate from "@/app/utils/useForceUpdate";
 import { range } from "lodash";
 import { GuessDiv, WordleDiv } from "@/app/utils/wordleStyles";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  selectWordleGame,
+  selectWordleCurrentGuess,
+  updateGame,
+  updateCurrentGuess,
+} from "@/app/redux/wordle/wordle";
 
 const Wordle = (): React.ReactElement => {
-  const [forceUpdateCount, forceUpdate] = useForceUpdate();
+  const plainGame = useSelector(selectWordleGame);
+  const currentGuess = useSelector(selectWordleCurrentGuess);
+  const dispatch = useDispatch();
 
-  const [game, setGame] = useState(() => new WordleGame());
-  const [currentGuess, setCurrentGuess] = useState("");
+  const [game, setGame] = useState(() => new WordleGame(plainGame));
 
   const guesses = useMemo(() => game.guesses, [game]);
-  const alphabetResult = useMemo(() => game.alphabetResult, [game]);
+  const alphabetResult = useMemo(
+    () => game.alphabetResult,
+    [game.alphabetResult]
+  );
   const combinedGuesses = useMemo(
     () => guesses.concat(game.canGuess ? [{ guess: currentGuess }] : []),
     [guesses, game.canGuess, currentGuess]
@@ -21,19 +31,19 @@ const Wordle = (): React.ReactElement => {
 
   const makeGuess = useCallback(() => {
     const result = game.makeGuess(currentGuess);
+    dispatch(updateGame(game.toPlain()));
     if (result) {
-      setCurrentGuess("");
-      forceUpdate();
+      dispatch(updateCurrentGuess(""));
     } else {
       console.log("Invalid guess");
     }
-  }, [currentGuess, forceUpdate, game]);
+  }, [currentGuess, dispatch, game]);
 
   const handleKeyDown = useCallback(
     (key: string) => {
       if (key.length === 1 && key.match(/[a-zA-Z]/)) {
         if (currentGuess.length < WordleGame.answerLength) {
-          setCurrentGuess(currentGuess + key);
+          dispatch(updateCurrentGuess(currentGuess + key));
         }
       } else if (key === "Enter") {
         if (currentGuess.length === WordleGame.answerLength) {
@@ -41,11 +51,15 @@ const Wordle = (): React.ReactElement => {
         }
       } else if (key === "Escape" || key === "Backspace" || key === "Delete") {
         if (currentGuess.length > 0) {
-          setCurrentGuess(currentGuess.substring(0, currentGuess.length - 1));
+          dispatch(
+            updateCurrentGuess(
+              currentGuess.substring(0, currentGuess.length - 1)
+            )
+          );
         }
       }
     },
-    [currentGuess, makeGuess]
+    [currentGuess, dispatch, makeGuess]
   );
 
   return (
@@ -59,17 +73,25 @@ const Wordle = (): React.ReactElement => {
           />
         ))}
       </GuessDiv>
-      <Keyboard
-        key={forceUpdateCount}
-        alphabetResult={alphabetResult}
-        handleKeyDown={handleKeyDown}
-      />
+      <Keyboard alphabetResult={alphabetResult} handleKeyDown={handleKeyDown} />
+      {game.isHard && "Hard"}
       <button
         onClick={() => {
-          setGame(new WordleGame());
+          const newGame = new WordleGame(false);
+          setGame(newGame);
+          dispatch(updateGame(newGame.toPlain()));
         }}
       >
         New Game
+      </button>
+      <button
+        onClick={() => {
+          const newGame = new WordleGame(true);
+          setGame(newGame);
+          dispatch(updateGame(newGame.toPlain()));
+        }}
+      >
+        New Hard Game
       </button>
     </WordleDiv>
   );

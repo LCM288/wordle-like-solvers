@@ -2,6 +2,7 @@ import { app, BrowserWindow } from "electron";
 import isDev from "electron-is-dev";
 import installExtension, {
   REACT_DEVELOPER_TOOLS,
+  REDUX_DEVTOOLS,
 } from "electron-devtools-installer";
 
 const createWindow = (): void => {
@@ -22,7 +23,9 @@ app
   .whenReady()
   .then(() => {
     if (isDev) {
-      return installExtension(REACT_DEVELOPER_TOOLS);
+      return installExtension(REACT_DEVELOPER_TOOLS).then(() =>
+        installExtension(REDUX_DEVTOOLS)
+      );
     }
   })
   .then(() => createWindow());

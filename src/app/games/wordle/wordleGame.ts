@@ -1,6 +1,6 @@
 import otherAllowList from "@/app/games/wordle/otherAllowList.json";
 import answerList from "@/app/games/wordle/answerList.json";
-import { last, sample, sortedIndex } from "lodash";
+import { last, sample, sortedIndex, isEqual } from "lodash";
 import { GuessResult, SingleGuessResult } from "@/app/games/guessResult";
 
 export type GuessWithResult = {
@@ -9,6 +9,13 @@ export type GuessWithResult = {
 };
 
 export type AlphabetResult = Record<string, SingleGuessResult>;
+
+export type PlainWordleGame = {
+  answer: string;
+  guesses: Required<GuessWithResult>[];
+  alphabetResult: AlphabetResult;
+  isHard: boolean;
+};
 
 const allowList = answerList.concat(otherAllowList).sort();
 
@@ -80,23 +87,25 @@ class WordleGame {
   static updateAlphabetResult(
     { guess, guessResult }: GuessWithResult,
     alphabetResult: AlphabetResult
-  ): void {
+  ): AlphabetResult {
+    const newAlphabetResult = { ...alphabetResult };
     for (let i = 0; i < guess.length; i++) {
       switch (alphabetResult[guess[i]]) {
         case SingleGuessResult.perfectMatch:
           break;
         case SingleGuessResult.partialMatch:
           if (guessResult?.[i] === SingleGuessResult.perfectMatch) {
-            alphabetResult[guess[i]] = guessResult[i];
+            newAlphabetResult[guess[i]] = guessResult[i];
           }
           break;
         default:
           if (guessResult) {
-            alphabetResult[guess[i]] = guessResult[i];
+            newAlphabetResult[guess[i]] = guessResult[i];
           }
           break;
       }
     }
+    return newAlphabetResult;
   }
 
   private _answer: string;
@@ -105,10 +114,24 @@ class WordleGame {
 
   private _alphabetResult: AlphabetResult;
 
-  constructor() {
-    this._answer = sample(WordleGame.answerList) ?? "cigar";
-    this._guesses = [];
-    this._alphabetResult = {};
+  private _isHard: boolean;
+
+  constructor(isHard: boolean);
+  constructor(plainWordleGame: PlainWordleGame);
+  constructor(arg1: PlainWordleGame | boolean) {
+    if (typeof arg1 !== "boolean") {
+      const { answer, guesses, alphabetResult, isHard } = arg1;
+      this._answer = answer;
+      this._guesses = [...guesses];
+      this._alphabetResult = { ...alphabetResult };
+      this._isHard = isHard;
+    } else {
+      const isHard = arg1;
+      this._answer = sample(WordleGame.answerList) ?? "cigar";
+      this._guesses = [];
+      this._alphabetResult = {};
+      this._isHard = isHard;
+    }
   }
 
   get guesses(): GuessWithResult[] {
@@ -117,6 +140,10 @@ class WordleGame {
 
   get alphabetResult(): AlphabetResult {
     return this._alphabetResult;
+  }
+
+  get isHard(): boolean {
+    return this._isHard;
   }
 
   get canGuess(): boolean {
@@ -142,15 +169,37 @@ class WordleGame {
       return null;
     }
 
+    if (this._isHard) {
+      for (let i = 0; i < this._guesses.length; i++) {
+        if (
+          !isEqual(
+            WordleGame.guessResult(this._guesses[i].guess, guess),
+            this._guesses[i].guessResult
+          )
+        ) {
+          return null;
+        }
+      }
+    }
+
     const guessResult = WordleGame.guessResult(guess, this._answer);
 
-    WordleGame.updateAlphabetResult(
+    this._alphabetResult = WordleGame.updateAlphabetResult(
       { guess, guessResult },
       this._alphabetResult
     );
 
-    this.guesses.push({ guess, guessResult });
+    this._guesses.push({ guess, guessResult });
     return guessResult;
+  }
+
+  toPlain(): PlainWordleGame {
+    return {
+      answer: this._answer,
+      guesses: [...this._guesses],
+      alphabetResult: { ...this._alphabetResult },
+      isHard: this._isHard,
+    };
   }
 }
 
